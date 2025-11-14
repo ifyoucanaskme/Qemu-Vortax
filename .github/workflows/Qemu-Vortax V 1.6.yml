@@ -1,4 +1,4 @@
-name: Qemu-Vortax V 1.5
+name: Qemu-Vortax V 1.6
 
 on:
   workflow_dispatch:
@@ -30,7 +30,7 @@ on:
       connection_program:
         description: 'Select program (RDP, VNC, NoMachine)'
         required: true
-        default: 'VNC'
+        default: 'RDP'
       bios_mode:
         description: 'Choose firmware mode: UEFI or BIOS (default UEFI)'
         required: true
@@ -189,9 +189,32 @@ jobs:
           elif [[ "$SRC" == *"mediafire.com"* || "$SRC" == *"mega.nz"* ]]; then
             echo "Using badown to download from: $SRC"
             cd ~/badown
-            sudo ./badown "$SRC"
+            CACHE_FILE="/tmp/badown_cache.log"
+            : > "$CACHE_FILE"
+            (
+              sudo ./badown "$SRC" >"$CACHE_FILE" 2>&1 &
+              pid=$!
+              last_update=$(date +%s)
+              progress=""
+              while kill -0 $pid 2>/dev/null; do
+                now=$(date +%s)
+                if (( now - last_update >= 10 )); then
+                  new_progress=$(grep -Eo '[0-9]{1,3}%' "$CACHE_FILE" | tail -n1)
+                  if [[ -n "$new_progress" ]]; then
+                    progress="$new_progress"
+                    echo "Downloading... $progress"
+                  else
+                    echo "Downloading..."
+                  fi
+                  last_update=$now
+                fi
+                sleep 0.2
+              done
+              wait $pid
+            )
             DOWNLOADED=$(ls -t | head -n1)
             sudo mv "$DOWNLOADED" "$FILE_PATH"
+            
           else
             echo "Downloading system file via wget..."
             sudo wget -q --user-agent="Mozilla/5.0" --trust-server-names --content-disposition -O "$FILE_PATH" "$SRC"
