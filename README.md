@@ -85,7 +85,7 @@ Go to **Settings → Secrets → Actions → New repository secret** and add the
 |--------|------------|--------------|-------------|
 | `bazite` | ISO | Minimal distro focused on performance and clean design. | ![Bazite](assets/bazite.png) |
 | `bliss` | ISO/QCOW2 | Android-based OS with Google Apps pre-installed. | ![Bliss](assets/bliss.png) |
-| `centos_qcow2` | QCOW2 | CentOS Stream 10 GenericCloud image for stable enterprise environments. | ![CentOS](assets/centos_qcow2.png) |
+| `centos_qcow2` | QCOW2 | CentOS Stream 10 GenericCloud image for stable enterprise environments. | Command Line interface |
 | `cutefish` | ISO | CutefishOS 22.04, Ubuntu-based system with a clean macOS-like interface. | ![Cutefish](assets/cutefish.png) |
 | `deepin` | ISO/QCOW2 | Deepin Linux with an elegant UI and strong customization. | ![Deepin](assets/deepin.png) |
 | `garuda_mokka` | ISO | Garuda Linux Mokka edition for gaming and speed. | ![Garuda](assets/garuda.png) |
@@ -97,7 +97,7 @@ Go to **Settings → Secrets → Actions → New repository secret** and add the
 | `pop_os` | ISO/QCOW2 | Pop!_OS optimized for developers and creators. | ![PopOS](assets/popos.png) |
 | `ubuntu` | ISO | Classic Ubuntu desktop with XFCE, stable and lightweight. | ![Ubuntu](assets/ubuntu.png) |
 | `win7` | QCOW2 | Windows 7 Professional with classic interface and broad software support. | ![Win7](assets/win7.png) |
-| `debian_qcow2` | QCOW2 | Debian 12 Bookworm cloud image preconfigured for QEMU. | ![Debian](assets/debian_qcow2.png) |
+| `debian_qcow2` | QCOW2 | Debian 12 Bookworm cloud image preconfigured for QEMU. |  Command Line interface  |
 
 > All previous releases (V1.3, V1.4, V1.5, V1.6, V1.7) are included as previous released.
 
