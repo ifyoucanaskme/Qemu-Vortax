@@ -1,4 +1,4 @@
-name: Mega-Account-Gen
+name: Mega-Account-Gen-Selenium
 
 on:
   workflow_dispatch:
@@ -13,27 +13,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install megacmd + megatools
+      - name: Install dependencies
         run: |
           sudo apt update
-          sudo wget https://mega.nz/linux/repo/xUbuntu_24.10/amd64/megacmd-xUbuntu_24.10_amd64.deb && sudo apt install "$PWD/megacmd-xUbuntu_24.10_amd64.deb"
-          sudo wget https://mega.nz/linux/repo/xUbuntu_24.10/amd64/megacmd-xUbuntu_24.10_amd64.deb && sudo apt install "$PWD/megacmd-xUbuntu_24.10_amd64.deb"
-          sudo apt install -y megatools
+          sudo apt install -y wget unzip xvfb chromium-browser chromium-chromedriver
           pip install --upgrade pip
 
-      - name: Clone MEGA-Account-Generator
+      - name: Clone Mega-nz-Account-Creators
         run: |
-          git clone https://github.com/f-o/MEGA-Account-Generator.git
-          cd MEGA-Account-Generator
+          git clone https://github.com/techux/Mega-nz-Account-Creators.git
+          cd Mega-nz-Account-Creators
           pip install -r requirements.txt
 
-      - name: Generate Account (Retry up to 3 Times)
+      - name: Run Generator (Retry up to 3 times)
         run: |
-          cd MEGA-Account-Generator
+          cd Mega-nz-Account-Creators
           tries=0
           success=0
           while [ $tries -lt 3 ]; do
-            python generate_accounts.py -n 1 && success=1 && break
+            xvfb-run python accountGenerator.py && success=1 && break
             tries=$((tries+1))
             echo "Retry attempt: $tries"
           done
@@ -42,12 +40,13 @@ jobs:
             exit 1
           fi
 
-      - name: Read CSV
+      - name: Read generated account
         id: read
         run: |
-          line=$(tail -n 1 MEGA-Account-Generator/accounts.csv)
-          email=$(echo "$line" | cut -d',' -f1)
-          pass=$(echo "$line" | cut -d',' -f2)
+          file=Mega-nz-Account-Creators/generated_accounts.txt
+          line=$(tail -n 1 "$file")
+          email=$(echo "$line" | awk '{print $1}')
+          pass=$(echo "$line" | awk '{print $2}')
           echo "cred=$email $pass" >> $GITHUB_OUTPUT
           echo "=== GENERATED ACCOUNT ==="
           echo "$email $pass"
