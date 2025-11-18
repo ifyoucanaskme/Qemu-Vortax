@@ -27,10 +27,20 @@ jobs:
           cd MEGA-Account-Generator
           pip install -r requirements.txt
 
-      - name: Generate Account
+      - name: Generate Account (Retry up to 3 Times)
         run: |
           cd MEGA-Account-Generator
-          python generate_accounts.py -n 1
+          tries=0
+          success=0
+          while [ $tries -lt 3 ]; do
+            python generate_accounts.py -n 1 && success=1 && break
+            tries=$((tries+1))
+            echo "Retry attempt: $tries"
+          done
+          if [ $success -eq 0 ]; then
+            echo "ERROR: Account generation failed after 3 attempts."
+            exit 1
+          fi
 
       - name: Read CSV
         id: read
