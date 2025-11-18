@@ -1,11 +1,11 @@
-name: Mega-Account-Gen-Selenium
+name: Mega-Account-Gen-Node
 
 on:
   workflow_dispatch:
 
 jobs:
   gen:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     outputs:
       mega_cred: ${{ steps.read.outputs.cred }}
 
@@ -13,52 +13,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Python packages
-        run: |
-          pip install --upgrade pip
-          pip install bs4 selenium requests fake_useragent
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-      - name: Install Chrome and Chromedriver
-        shell: powershell
+      - name: Clone mega-account-generator
         run: |
-          $ProgressPreference = 'SilentlyContinue'
-          Invoke-WebRequest https://storage.googleapis.com/chrome-for-testing-public/131.0.6778.85/win64/chrome-win64.zip -OutFile chrome.zip
-          Expand-Archive chrome.zip -DestinationPath chrome
-          Invoke-WebRequest https://storage.googleapis.com/chrome-for-testing-public/131.0.6778.85/win64/chromedriver-win64.zip -OutFile driver.zip
-          Expand-Archive driver.zip -DestinationPath driver
-          echo "$PWD/chrome/chrome-win64" | Out-File -FilePath $env:GITHUB_PATH -Append
-          echo "$PWD/driver/chromedriver-win64" | Out-File -FilePath $env:GITHUB_PATH -Append
-
-      - name: Clone Updated Mega-nz-Account-Creators
-        run: |
-          git clone https://github.com/qemuvortax/Mega-nz-Account-Creators.git
-          cd Mega-nz-Account-Creators
-          pip install -r requirements.txt || exit 0
+          git clone https://github.com/crackhub-dev/mega-account-generator.git
+          cd mega-account-generator
+          npm i
 
       - name: Run Generator (Retry up to 3 times)
-        shell: bash
         run: |
-          cd Mega-nz-Account-Creators
+          cd mega-account-generator
           tries=0
           success=0
           while [ $tries -lt 3 ]; do
-            python accountGenerator.py && success=1 && break
+            node . && success=1 && break
             tries=$((tries+1))
-            echo Retry attempt: $tries
+            echo "Retry attempt: $tries"
+            rm -rf tmp/*
           done
           if [ $success -eq 0 ]; then
-            echo ERROR: Account generation failed after 3 attempts.
+            echo "ERROR: Account generation failed after 3 attempts."
             exit 1
           fi
 
-      - name: Read generated account
+      - name: Read details.json
         id: read
-        shell: bash
         run: |
-          file=Mega-nz-Account-Creators/generated_accounts.txt
-          line=$(tail -n 1 "$file")
-          email=$(echo "$line" | awk '{print $1}')
-          pass=$(echo "$line" | awk '{print $2}')
-          echo cred="$email $pass" >> $GITHUB_OUTPUT
-          echo === GENERATED ACCOUNT ===
+          file=mega-account-generator/details.json
+          email=$(jq -r '.email' "$file")
+          pass=$(jq -r '.password' "$file")
+          echo "cred=$email $pass" >> $GITHUB_OUTPUT
+          echo "=== GENERATED ACCOUNT ==="
           echo "$email $pass"
