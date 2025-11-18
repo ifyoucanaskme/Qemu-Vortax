@@ -3,6 +3,9 @@ name: Mega.nz Account Generator + XFCE VNC
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   generate-account:
     runs-on: ubuntu-latest
@@ -13,41 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Ensure runner user has sudo
-        run: |
-          echo "${USERNAME}:${PASSWORD}" | sudo chpasswd
-          echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${USERNAME}
-
-      - name: Install XFCE + VNC server
+      - name: Install Python deps
         run: |
           sudo apt-get update -qq
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq xfce4 xfce4-terminal dbus-x11 xorg tigervnc-standalone-server tigervnc-common tigervnc-tools
-          mkdir -p /home/${USERNAME}/.vnc
-          echo ${PASSWORD} | vncpasswd -f > /home/${USERNAME}/.vnc/passwd
-          chmod 600 /home/${USERNAME}/.vnc/passwd
-          chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.vnc
-          echo "startxfce4" > /home/${USERNAME}/.xsession
-          chown ${USERNAME}:${USERNAME} /home/${USERNAME}/.xsession
-          sudo -u ${USERNAME} vncserver :1 -geometry 1280x800 -depth 24 -localhost no
+          sudo apt-get install -y -qq python3 python3-pip
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get install -y python3 python3-pip git wget
-          pip install --upgrade pip
-
-      - name: Install MegaCMD
-        run: |
-          sudo wget https://mega.nz/linux/repo/xUbuntu_24.10/amd64/megacmd-xUbuntu_24.10_amd64.deb
-          sudo apt install -y "$PWD/megacmd-xUbuntu_24.10_amd64.deb"
-
-      - name: Clone latest Mega-nz-Account-Creators
-        run: |
-          git clone https://github.com/qemuvortax/Mega-nz-Account-Creators.git
-          cd Mega-nz-Account-Creators
-          pip install -r requirements.txt
-
-      - name: Generate single account
-        id: generate
+      - name: Generate Mega Account
         run: |
           cd Mega-nz-Account-Creators
           ATTEMPTS=0
@@ -66,10 +40,49 @@ jobs:
           echo "::set-output name=account::$ACCOUNT"
           echo "::set-output name=password::$PASSWORD"
 
-      - name: Show generated account
-        run: |
-          echo "ACCOUNT: ${{ steps.generate.outputs.account }}"
-          echo "PASSWORD: ${{ steps.generate.outputs.password }}"
+  setup-vnc:
+    needs: generate-account
+    runs-on: ubuntu-latest
+    env:
+      TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+      USERNAME: runner
+      PASSWORD: runner
+      TAILSCALE_HOSTNAME: gh-xfce-vnc-${{ github.run_id }}
 
-      - name: Keep runner alive
-        run: tail -f /dev/null
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure runner sudo
+        run: |
+          echo "${USERNAME}:${PASSWORD}" | sudo chpasswd
+          echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${USERNAME}
+
+      - name: Install XFCE + VNC
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq xfce4 xfce4-terminal dbus-x11 xorg tigervnc-standalone-server tigervnc-common tigervnc-tools
+          mkdir -p /home/${USERNAME}/.vnc
+          echo ${PASSWORD} | vncpasswd -f > /home/${USERNAME}/.vnc/passwd
+          chmod 600 /home/${USERNAME}/.vnc/passwd
+          chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.vnc
+          echo "startxfce4" > /home/${USERNAME}/.xsession
+          chown ${USERNAME}:${USERNAME} /home/${USERNAME}/.xsession
+
+      - name: Install Tailscale
+        run: |
+          curl -fsSL https://tailscale.com/install.sh | sudo sh
+          sudo tailscale up --authkey "${TAILSCALE_AUTHKEY}" --hostname "${TAILSCALE_HOSTNAME}"
+
+      - name: Start VNC + Show Info
+        run: |
+          sudo -u ${USERNAME} vncserver :1 -geometry 1280x800 -depth 24 -localhost no
+          TAILSCALE_IP=$(tailscale ip -4 | head -n1)
+          echo "=== GENERATED ACCOUNT ==="
+          echo "Account: ${{ steps.generate-account.outputs.account }}"
+          echo "Password: ${{ steps.generate-account.outputs.password }}"
+          echo "=== CONNECTION INFO ==="
+          echo "USERNAME: ${USERNAME}"
+          echo "PASSWORD: ${PASSWORD}"
+          echo "Connect with VNC to:"
+          echo "${TAILSCALE_IP}:5901"
+          tail -f /dev/null
