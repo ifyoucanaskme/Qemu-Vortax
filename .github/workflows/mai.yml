@@ -1,0 +1,43 @@
+name: Mega-Account-Gen
+
+on:
+  workflow_dispatch:
+
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    outputs:
+      mega_cred: ${{ steps.read.outputs.cred }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install megacmd + megatools
+        run: |
+          sudo apt update
+          sudo wget https://mega.nz/linux/repo/xUbuntu_24.10/amd64/megacmd-xUbuntu_24.10_amd64.deb && sudo apt install "$PWD/megacmd-xUbuntu_24.10_amd64.deb"
+          sudo wget https://mega.nz/linux/repo/xUbuntu_24.10/amd64/megacmd-xUbuntu_24.10_amd64.deb && sudo apt install "$PWD/megacmd-xUbuntu_24.10_amd64.deb"
+          sudo apt install -y megatools
+          pip install --upgrade pip
+
+      - name: Clone MEGA-Account-Generator
+        run: |
+          git clone https://github.com/f-o/MEGA-Account-Generator.git
+          cd MEGA-Account-Generator
+          pip install -r requirements.txt
+
+      - name: Generate Account
+        run: |
+          cd MEGA-Account-Generator
+          python generate_accounts.py -n 1
+
+      - name: Read CSV
+        id: read
+        run: |
+          line=$(tail -n 1 MEGA-Account-Generator/accounts.csv)
+          email=$(echo "$line" | cut -d',' -f1)
+          pass=$(echo "$line" | cut -d',' -f2)
+          echo "cred=$email $pass" >> $GITHUB_OUTPUT
+          echo "=== GENERATED ACCOUNT ==="
+          echo "$email $pass"
