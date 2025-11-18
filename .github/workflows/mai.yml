@@ -15,11 +15,6 @@ jobs:
           sudo wget https://mega.nz/linux/repo/xUbuntu_24.10/amd64/megacmd-xUbuntu_24.10_amd64.deb
           sudo apt install -y "$PWD/megacmd-xUbuntu_24.10_amd64.deb"
 
-      - name: Install Python 3.10 and pip
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.10
-
       - name: Clone py_mega_account_generator
         run: |
           git clone https://github.com/qtchaos/py_mega_account_generator.git
