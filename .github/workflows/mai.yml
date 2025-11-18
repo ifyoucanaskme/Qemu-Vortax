@@ -1,51 +1,53 @@
-name: Mega-Account-Gen-Node
+name: Mega Account Generator
 
 on:
   workflow_dispatch:
 
 jobs:
-  gen:
+  generate-mega-account:
     runs-on: ubuntu-latest
-    outputs:
-      mega_cred: ${{ steps.read.outputs.cred }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - name: Install megacmd
+        run: |
+          sudo wget https://mega.nz/linux/repo/xUbuntu_24.10/amd64/megacmd-xUbuntu_24.10_amd64.deb
+          sudo apt install -y "$PWD/megacmd-xUbuntu_24.10_amd64.deb"
+
+      - name: Install Python 3.10 and pip
+        uses: actions/setup-python@v4
         with:
-          node-version: 18
+          python-version: 3.10
 
-      - name: Clone mega-account-generator
+      - name: Clone py_mega_account_generator
         run: |
-          git clone https://github.com/crackhub-dev/mega-account-generator.git
-          cd mega-account-generator
-          npm i
+          git clone https://github.com/qtchaos/py_mega_account_generator.git
+          cd py_mega_account_generator
+          pip install -r requirements.txt
 
-      - name: Run Generator (Retry up to 3 times)
+      - name: Generate Mega account
+        id: generate_account
         run: |
-          cd mega-account-generator
-          tries=0
-          success=0
-          while [ $tries -lt 3 ]; do
-            node . && success=1 && break
-            tries=$((tries+1))
-            echo "Retry attempt: $tries"
-            rm -rf tmp/*
+          cd py_mega_account_generator
+          ATTEMPTS=0
+          SUCCESS=0
+          while [ $ATTEMPTS -lt 5 ] && [ $SUCCESS -eq 0 ]; do
+            OUTPUT=$(python main.py 2>&1)
+            if echo "$OUTPUT" | grep -q '"email":'; then
+              ACCOUNT=$(echo "$OUTPUT" | grep '"email":' -A2 | tr -d ' "{}' | tr '\n' ' ' | awk '{print $2 "#" $6}')
+              SUCCESS=1
+            else
+              ATTEMPTS=$((ATTEMPTS+1))
+              echo "Retry attempt: $ATTEMPTS"
+            fi
           done
-          if [ $success -eq 0 ]; then
-            echo "ERROR: Account generation failed after 3 attempts."
+          if [ $SUCCESS -eq 0 ]; then
+            echo "Failed to generate account after 5 attempts."
             exit 1
           fi
+          echo "mega_account=$ACCOUNT" >> $GITHUB_ENV
 
-      - name: Read details.json
-        id: read
+      - name: Show generated account
         run: |
-          file=mega-account-generator/details.json
-          email=$(jq -r '.email' "$file")
-          pass=$(jq -r '.password' "$file")
-          echo "cred=$email $pass" >> $GITHUB_OUTPUT
-          echo "=== GENERATED ACCOUNT ==="
-          echo "$email $pass"
+          echo "Generated Mega account: ${{ env.mega_account }}"
