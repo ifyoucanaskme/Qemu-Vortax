@@ -20,6 +20,10 @@ jobs:
           pip install --upgrade pip
           pip install bs4 selenium requests fake_useragent
 
+      - name: Patch script to skip user input
+        run: |
+          sed -i 's/how_many_accounts = int(input("Enter number of account to generate : "))/how_many_accounts = 1/' Mega-nz-Account-Creators/accountGenerator.py
+
       - name: Clone Mega-nz-Account-Creators
         run: |
           git clone https://github.com/techux/Mega-nz-Account-Creators.git
