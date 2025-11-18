@@ -18,12 +18,13 @@ jobs:
           sudo apt update
           sudo apt install -y wget unzip xvfb chromium-browser chromium-chromedriver
           pip install --upgrade pip
+          pip install bs4 selenium requests fake_useragent
 
       - name: Clone Mega-nz-Account-Creators
         run: |
           git clone https://github.com/techux/Mega-nz-Account-Creators.git
           cd Mega-nz-Account-Creators
-          pip install -r requirements.txt
+          pip install -r requirements.txt || true
 
       - name: Run Generator (Retry up to 3 times)
         run: |
