@@ -1,4 +1,4 @@
-name: Qemu-Vortax V 1.8
+name: Qemu-Vortax V 1.9
 
 on:
   workflow_dispatch:
@@ -475,14 +475,22 @@ jobs:
             TARGET_FILE="${VM}.qcow2"
             TARGET_PATH="$MNT_PATH/$TARGET_FILE"
             
-            UPLOAD_COMMAND="megaput --path '/' --user \"$MEGA_EMAIL\" --password \"$MEGA_PASSWORD\" \"$TARGET_PATH\""
+            echo "Setting up MegaTools configuration file..."
+            mkdir -p ~/.config/megatools
+            cat << EOF > ~/.config/megatools/megatools.rc
+            [Login]
+            Username = $MEGA_EMAIL
+            Password = $MEGA_PASSWORD
+            EOF
+            
+            UPLOAD_COMMAND="megaput --path '/' \"$TARGET_PATH\""
             echo "Executing: $UPLOAD_COMMAND"
             
             if $UPLOAD_COMMAND; then
               echo "File $TARGET_FILE uploaded successfully."
               echo "Attempting to retrieve link using megals --links..."
               
-              DL_LINK=$(megals --links --user "$MEGA_EMAIL" --password "$MEGA_PASSWORD" / | \
+              DL_LINK=$(megals --links / | \
                 grep "$TARGET_FILE" | \
                 awk '{print $1}')
                 
@@ -496,6 +504,9 @@ jobs:
             else
               echo "Error during file upload using MegaTools."
             fi
+            
+            rm -f ~/.config/megatools/megatools.rc
+
           else
             echo "Skipped uploading QCOW2."
           fi
