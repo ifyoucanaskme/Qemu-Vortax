@@ -1,0 +1,33 @@
+name: Test Mega Generator
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-mega-gen:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install megatools
+        run: |
+          sudo apt update
+          sudo apt install -y megatools python3-pip
+          pip install rich requests
+
+      - name: Download mega_gen_cli.py from GitLab
+        run: |
+          curl -L "https://gitlab.com/MR.English2008/Mega_Gen/-/raw/main/maga_gen_cli.py" -o mega_gen_cli.py
+          chmod +x mega_gen_cli.py
+
+      - name: Run script and generate MEGA credentials
+        run: |
+          echo "Running script..."
+          python3 mega_gen_cli.py
+
+      - name: Show generated variables
+        run: |
+          echo "MEGA_EMAIL: $MEGA_EMAIL"
+          echo "MEGA_PASSWORD: $MEGA_PASSWORD"
