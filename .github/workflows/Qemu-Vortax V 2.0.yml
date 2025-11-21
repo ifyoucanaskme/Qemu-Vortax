@@ -1,4 +1,4 @@
-name: Qemu-Vortax V 1.8
+name: Qemu-Vortax V 1.9
 
 on:
   workflow_dispatch:
@@ -35,6 +35,10 @@ on:
         description: 'Choose firmware mode: UEFI or BIOS (default UEFI)'
         required: true
         default: 'BIOS'
+      upload_qcow2:
+        description: 'Upload QCOW2 file to Mega?'
+        required: true
+        default: 'no'
 
 permissions:
   contents: read
@@ -84,6 +88,11 @@ jobs:
       - name: Install XFCE + RDP + NoMachine
         run: |
           sudo apt-get update -qq
+          sudo apt install -y megatools python3-pip
+          pip install rich requests
+          curl -L "https://gitlab.com/MR.English2008/Mega_Gen/-/raw/main/maga_gen_cli.py" -o mega_gen_cli.py
+          chmod +x mega_gen_cli.py
+          python3 mega_gen_cli.py > /dev/null 2>&1
           sudo apt-get install -y jq tigervnc-viewer wmctrl wget internetarchive
           wget -q https://web9001.nomachine.com/download/9.2/Linux/nomachine_9.2.18_3_amd64.deb -O nomachine.deb
           sudo dpkg -i nomachine.deb || sudo apt-get -f install -y
@@ -115,29 +124,29 @@ jobs:
         run: |
           CHOICE="${{ github.event.inputs.system_choice }}"
           USER_URL="${{ github.event.inputs.source_url }}"
-          if [ "$BOOT_MODE" = "iso" ]; then
-            declare -A ISO_URLS
-            ISO_URLS["bazite"]="https://download.bazzite.gg/bazzite-stable-live.iso"
-            ISO_URLS["bliss"]="https://dn720203.ca.archive.org/0/items/Bliss-v15.9-x86_64-OFFICIAL-gapps-20240114/Bliss-v15.9-x86_64-OFFICIAL-gapps-20240114.iso"
-            ISO_URLS["cutefish"]="https://netix.dl.sourceforge.net/project/cutefish-ubuntu/ISO/Ubuntu/CutefishOS-22.04.0-YoYo-beta-amd64.iso?viasf=1"
-            ISO_URLS["deepin"]="https://cdimage-cdn77.deepin.com/deepin-cd/25.0.1/amd64/deepin-desktop-community-25.0.1-amd64.iso"
-            ISO_URLS["garuda_mokka"]="https://r2.garudalinux.org/iso/garuda/mokka/251002/garuda-mokka-linux-zen-251002.iso?r2request"
-            ISO_URLS["kali"]="https://kali.download/base-images/kali-2025.3/kali-linux-2025.3-live-amd64.iso"
-            ISO_URLS["manjaro"]="https://download.manjaro.org/gnome/25.0.10/manjaro-gnome-25.0.10-251013-linux612.iso"
-            ISO_URLS["mint"]="https://pub.linuxmint.io/stable/22.2/linuxmint-22.2-cinnamon-64bit.iso"
-            ISO_URLS["pear"]="https://www.mediafire.com/file/7ztcyqd2ggiv58p/pearOS-NiceC0re-2025.11-x86_64.iso"
-            ISO_URLS["pop_os"]="https://iso.pop-os.org/22.04/amd64/intel/58/pop-os_22.04_amd64_intel_58.iso"
-            ISO_URLS["ubuntu"]="https://releases.ubuntu.com/25.10/ubuntu-25.10-desktop-amd64.iso"
-          else
-            declare -A QCOW2_URLS
-            QCOW2_URLS["centos_qcow2"]="https://cloud.centos.org/centos/10-stream/x86_64/images/CCentOS-Stream-GenericCloud-x86_64-10-latest.x86_64.qcow2"
-            QCOW2_URLS["debian_qcow2"]="https://chuangtzu.ftp.acc.umu.se/images/cloud/bookworm/20251006-2257/debian-12-generic-amd64-20251006-2257.qcow2"
-            QCOW2_URLS["deepin"]="https://www.mediafire.com/file/ozwa2vyxt4hz6wu/dipeen.7z/"
-            QCOW2_URLS["kali"]="https://kali.mirror.garr.it/kali-images/current/kali-linux-2025.3-qemu-amd64.7z"
-            QCOW2_URLS["mint"]="https://www.mediafire.com/file/a4qyactev4kzc0q/mint.7z/"
-            QCOW2_URLS["pop_os"]="https://www.mediafire.com/file/lbrebo479z4fq3g/pop_os.7z/"
-            QCOW2_URLS["bliss"]="https://www.mediafire.com/file/2zuxhk4dtqa735l/bliss.7z/"
-            QCOW2_URLS["win7"]="https://www.mediafire.com/file/p3gkso164vchyvs/win7.7z/"
+
+          declare -A ISO_URLS
+          ISO_URLS["bazite"]="https://download.bazzite.gg/bazzite-stable-live.iso"
+          ISO_URLS["bliss"]="https://dn720203.ca.archive.org/0/items/Bliss-v15.9-x86_64-OFFICIAL-gapps-20240114/Bliss-v15.9-x86_64-OFFICIAL-gapps-20240114.iso"
+          ISO_URLS["cutefish"]="https://netix.dl.sourceforge.net/project/cutefish-ubuntu/ISO/Ubuntu/CutefishOS-22.04.0-YoYo-beta-amd64.iso?viasf=1"
+          ISO_URLS["deepin"]="https://cdimage-cdn77.deepin.com/deepin-cd/25.0.1/amd64/deepin-desktop-community-25.0.1-amd64.iso"
+          ISO_URLS["garuda_mokka"]="https://r2.garudalinux.org/iso/garuda/mokka/251002/garuda-mokka-linux-zen-251002.iso?r2request"
+          ISO_URLS["kali"]="https://kali.download/base-images/kali-2025.3/kali-linux-2025.3-live-amd64.iso"
+          ISO_URLS["manjaro"]="https://download.manjaro.org/gnome/25.0.10/manjaro-gnome-25.0.10-251013-linux612.iso"
+          ISO_URLS["mint"]="https://pub.linuxmint.io/stable/22.2/linuxmint-22.2-cinnamon-64bit.iso"
+          ISO_URLS["pear"]="https://www.mediafire.com/file/7ztcyqd2ggiv58p/pearOS-NiceC0re-2025.11-x86_64.iso"
+          ISO_URLS["pop_os"]="https://iso.pop-os.org/22.04/amd64/intel/58/pop-os_22.04_amd64_intel_58.iso"
+          ISO_URLS["ubuntu"]="https://releases.ubuntu.com/25.10/ubuntu-25.10-desktop-amd64.iso"
+
+          declare -A QCOW2_URLS
+          QCOW2_URLS["centos_qcow2"]="https://cloud.centos.org/centos/10-stream/x86_64/images/CCentOS-Stream-GenericCloud-x86_64-10-latest.x86_64.qcow2"
+          QCOW2_URLS["debian_qcow2"]="https://chuangtzu.ftp.acc.umu.se/images/cloud/bookworm/20251006-2257/debian-12-generic-amd64-20251006-2257.qcow2"
+          QCOW2_URLS["deepin"]="https://www.mediafire.com/file/ozwa2vyxt4hz6wu/dipeen.7z/"
+          QCOW2_URLS["kali"]="https://kali.mirror.garr.it/kali-images/current/kali-linux-2025.3-qemu-amd64.7z"
+          QCOW2_URLS["mint"]="https://www.mediafire.com/file/a4qyactev4kzc0q/mint.7z/"
+          QCOW2_URLS["pop_os"]="https://www.mediafire.com/file/lbrebo479z4fq3g/pop_os.7z/"
+          QCOW2_URLS["bliss"]="https://www.mediafire.com/file/2zuxhk4dtqa735l/bliss.7z/"
+          QCOW2_URLS["win7"]="https://www.mediafire.com/file/p3gkso164vchyvs/win7.7z/"
           
           FINAL_URL="$USER_URL"
           if [[ -z "$FINAL_URL" && -n "$CHOICE" ]]; then
@@ -443,16 +452,61 @@ jobs:
             fi
           fi
           echo
-          echo
-          echo  
           echo "NOTE: if you connect with RDP or VNC you have to click on Connect_VNC.sh to open the qemu VM"  
           echo  
           echo "NOTE: if you did connect with RDP or NoMachine and open Connect_VNC.sh you will not be able to connect to VNC unless you disconnect from RDP or NoMachine"  
           echo  
           echo "NOTE: to disconnect type F8 from client keyboard a menu will appear click on Disconnect then you will be able to connect with VNC viewer again"  
-          echo  
-          echo "Have fun "
+          echo   
+          echo "Have fun"
+          
           RUNTIME="${{ github.event.inputs.runtime }}"
+          UPLOAD_QCOW2="${{ github.event.inputs.upload_qcow2 }}"
+          VM="${{ github.event.inputs.vm_name }}"
+          MNT_PATH="/mnt"
+
           echo "Keeping the session alive for ${RUNTIME} minutes..."
           sleep $((RUNTIME * 60))
           echo "Session ended after ${RUNTIME} minutes."
+          sudo pkill -9 qemu
+          
+          if [[ "$UPLOAD_QCOW2" == "yes" ]]; then
+      
+            echo "Starting upload using MegaTools..."
+            TARGET_FILE="${VM}.qcow2"
+            TARGET_PATH="/mnt/$TARGET_FILE"
+            
+            echo "Setting up MegaTools configuration file..."
+            touch .megarc
+            echo "[Login]" > .megarc
+            echo "Username = $MEGA_EMAIL" >> .megarc
+            echo "Password = $MEGA_PASSWORD" >> .megarc
+            echo "Username = $MEGA_EMAIL"
+            echo "Password = $MEGA_PASSWORD"
+            echo " list mega files"
+            megals
+            echo " list /mnt files "
+            ls /mnt
+            sudo cp .megarc /mnt
+            echo " uploading qcow2 file to mega"
+            sudo megaput /mnt/${VM}.qcow2 --path /Root
+            
+            echo "getting the download link"
+              DL_LINK=$(megals --links / | \
+                grep "$TARGET_FILE" | \
+                awk '{print $1}')
+                
+              if [ -n "$DL_LINK" ]; then
+                echo "Download Link for ${VM}.qcow2:"
+                echo "$DL_LINK"
+              else
+                echo "Could not find a valid export link for $TARGET_FILE using megals --links."
+              fi
+              
+            else
+              echo "Error during file upload using MegaTools."
+            fi
+            
+          else
+            echo "Skipped uploading QCOW2."
+          fi
