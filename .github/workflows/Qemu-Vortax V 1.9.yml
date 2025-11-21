@@ -483,10 +483,15 @@ jobs:
             echo "Password = $MEGA_PASSWORD" >> .megarc
             echo "Username = $MEGA_EMAIL"
             echo "Password = $MEGA_PASSWORD"
+            echo " list mega files"
             megals
+            echo " list /mnt files "
+            ls /mnt
             sudo cp .megarc /mnt
+            echo " uploading to mega"
+            sudo megaput /mnt/ME2008.qcow2 --path /Root
             
-            UPLOAD_COMMAND="sudo megaput --path '/' "/mnt/ME2008.qcow2""
+            UPLOAD_COMMAND="sudo megaput /mnt/ME2008.qcow2 --path /Root"
             echo "Executing: $UPLOAD_COMMAND"
             
             if $UPLOAD_COMMAND; then
