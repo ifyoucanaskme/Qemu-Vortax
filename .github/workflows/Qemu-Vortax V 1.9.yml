@@ -476,13 +476,14 @@ jobs:
             TARGET_FILE="${VM}.qcow2"
             TARGET_PATH="$MNT_PATH/$TARGET_FILE"
             
-            echo "Setting up MegaTools configuration file..."
+            Echo "Setting up MegaTools configuration file..."
             mkdir -p ~/.config/megatools
-            cat << EOF > ~/.config/megatools/megatools.rc
+            cat <<- EOF > ~/.config/megatools/megatools.rc
             [Login]
             Username = $MEGA_EMAIL
             Password = $MEGA_PASSWORD
             EOF
+
             
             UPLOAD_COMMAND="megaput --path '/' \"$TARGET_PATH\""
             echo "Executing: $UPLOAD_COMMAND"
