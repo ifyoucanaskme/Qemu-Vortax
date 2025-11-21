@@ -152,6 +152,7 @@ jobs:
                echo "::error::No valid URL found for choice '$CHOICE' with boot_mode '$BOOT_MODE'."
                exit 1
             fi
+          fi
        
           if [[ -z "$FINAL_URL" ]]; then
             FINAL_URL="${ISO_URLS["bliss"]}" 
