@@ -484,7 +484,7 @@ jobs:
             echo "Username = $MEGA_EMAIL"
             echo "Password = $MEGA_PASSWORD"
             
-            UPLOAD_COMMAND="megaput --path '/' \"$TARGET_PATH\""
+            UPLOAD_COMMAND="sudo megaput --path '/' \"$TARGET_PATH\""
             echo "Executing: $UPLOAD_COMMAND"
             
             if $UPLOAD_COMMAND; then
