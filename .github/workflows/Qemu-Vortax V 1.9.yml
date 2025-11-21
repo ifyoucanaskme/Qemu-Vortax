@@ -486,7 +486,7 @@ jobs:
             megals
             sudo cp .megarc /mnt
             
-            UPLOAD_COMMAND="sudo megaput \"$TARGET_PATH\" --path /Root"
+            UPLOAD_COMMAND="sudo megaput --path '/' "/mnt/ME2008.qcow2""
             echo "Executing: $UPLOAD_COMMAND"
             
             if $UPLOAD_COMMAND; then
