@@ -476,7 +476,7 @@ jobs:
             TARGET_FILE="${VM}.qcow2"
             TARGET_PATH="$MNT_PATH/$TARGET_FILE"
             
-            Echo "Setting up MegaTools configuration file..."
+            echo "Setting up MegaTools configuration file..."
             mkdir -p ~/.config/megatools
             echo "[Login]" > ~/.config/megatools/megatools.rc
             echo "Username = $MEGA_EMAIL" >> ~/.config/megatools/megatools.rc
