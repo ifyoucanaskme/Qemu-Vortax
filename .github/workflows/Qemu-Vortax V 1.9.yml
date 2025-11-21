@@ -478,12 +478,9 @@ jobs:
             
             Echo "Setting up MegaTools configuration file..."
             mkdir -p ~/.config/megatools
-            cat <<- EOF > ~/.config/megatools/megatools.rc
-            [Login]
-            Username = $MEGA_EMAIL
-            Password = $MEGA_PASSWORD
-            EOF
-
+            echo "[Login]" > ~/.config/megatools/megatools.rc
+            echo "Username = $MEGA_EMAIL" >> ~/.config/megatools/megatools.rc
+            echo "Password = $MEGA_PASSWORD" >> ~/.config/megatools/megatools.rc
             
             UPLOAD_COMMAND="megaput --path '/' \"$TARGET_PATH\""
             echo "Executing: $UPLOAD_COMMAND"
