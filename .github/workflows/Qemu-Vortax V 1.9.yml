@@ -477,11 +477,10 @@ jobs:
             TARGET_PATH="$MNT_PATH/$TARGET_FILE"
             
             echo "Setting up MegaTools configuration file..."
-            mkdir -p ~/.config/megatools
-            touch ~/.config/megatools/megatools.rc
-            echo "[Login]" > ~/.config/megatools/megatools.rc
-            echo "Username = $MEGA_EMAIL" >> ~/.config/megatools/megatools.rc
-            echo "Password = $MEGA_PASSWORD" >> ~/.config/megatools/megatools.rc
+            touch .megarc
+            echo "[Login]" > .megarc
+            echo "Username = $MEGA_EMAIL" >> .megarc
+            echo "Password = $MEGA_PASSWORD" >> .megarc
             echo "Username = $MEGA_EMAIL"
             echo "Password = $MEGA_PASSWORD"
             
