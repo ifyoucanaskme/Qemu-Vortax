@@ -474,7 +474,7 @@ jobs:
       
             echo "Starting upload using MegaTools..."
             TARGET_FILE="${VM}.qcow2"
-            TARGET_PATH="$MNT_PATH/$TARGET_FILE"
+            TARGET_PATH="/mnt/$TARGET_FILE"
             
             echo "Setting up MegaTools configuration file..."
             touch .megarc
@@ -483,8 +483,10 @@ jobs:
             echo "Password = $MEGA_PASSWORD" >> .megarc
             echo "Username = $MEGA_EMAIL"
             echo "Password = $MEGA_PASSWORD"
+            megals
+            sudo cp .megarc /mnt
             
-            UPLOAD_COMMAND="sudo megaput --path '/' \"$TARGET_PATH\""
+            UPLOAD_COMMAND="sudo megaput \"$TARGET_PATH\" --path /Root"
             echo "Executing: $UPLOAD_COMMAND"
             
             if $UPLOAD_COMMAND; then
