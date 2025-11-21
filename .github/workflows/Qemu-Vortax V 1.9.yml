@@ -468,7 +468,7 @@ jobs:
           echo "Keeping the session alive for ${RUNTIME} minutes..."
           sleep $((RUNTIME * 60))
           echo "Session ended after ${RUNTIME} minutes."
-          pkill -9 qemu
+          sudo pkill -9 qemu
           
           if [[ "$UPLOAD_QCOW2" == "yes" ]]; then
       
