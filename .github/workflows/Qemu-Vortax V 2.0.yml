@@ -499,7 +499,10 @@ jobs:
             echo " uploading qcow2 file to mega"
             sudo megaput /mnt/${VM}.qcow2 --path /Root
             echo "getting the download link"
-            sudo megals --links
+            DOWNLOAD_LINK=$(sudo megaexport /Root/${VM}.qcow2)
+            echo "Download link: $DOWNLOAD_LINK"
           else
             echo "Skipped uploading QCOW2."
           fi
+          
+          
