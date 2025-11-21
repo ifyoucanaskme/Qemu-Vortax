@@ -498,23 +498,8 @@ jobs:
             sudo cp .megarc /mnt
             echo " uploading qcow2 file to mega"
             sudo megaput /mnt/${VM}.qcow2 --path /Root
-            
             echo "getting the download link"
-              DL_LINK=$(megals --links / | \
-                grep "$TARGET_FILE" | \
-                awk '{print $1}')
-                
-              if [ -n "$DL_LINK" ]; then
-                echo "Download Link for ${VM}.qcow2:"
-                echo "$DL_LINK"
-              else
-                echo "Could not find a valid export link for $TARGET_FILE using megals --links."
-              fi
-              
-            else
-              echo "Error during file upload using MegaTools."
-            fi
-            
+            sudo megals --links
           else
             echo "Skipped uploading QCOW2."
           fi
