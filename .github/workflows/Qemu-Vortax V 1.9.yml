@@ -110,7 +110,7 @@ jobs:
           chmod +x ~/badown/badown
           sudo touch ~/badown/.badown.tmp
 
-            - name: Determine source URL (Modified Logic)
+      - name: Determine source URL (Modified Logic)
         id: determine_url
         run: |
           CHOICE="${{ github.event.inputs.system_choice }}"
