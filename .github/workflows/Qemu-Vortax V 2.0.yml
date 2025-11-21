@@ -1,4 +1,4 @@
-name: Qemu-Vortax V 1.9
+name: Qemu-Vortax V 2.0
 
 on:
   workflow_dispatch:
@@ -119,11 +119,12 @@ jobs:
           chmod +x ~/badown/badown
           sudo touch ~/badown/.badown.tmp
 
-      - name: Determine source URL
+      - name: Determine source URL (Modified Logic)
         id: determine_url
         run: |
           CHOICE="${{ github.event.inputs.system_choice }}"
           USER_URL="${{ github.event.inputs.source_url }}"
+          BOOT_MODE="${{ github.event.inputs.boot_mode }}" # جلب متغير وضع الإقلاع
 
           declare -A ISO_URLS
           ISO_URLS["bazite"]="https://download.bazzite.gg/bazzite-stable-live.iso"
@@ -150,18 +151,25 @@ jobs:
           
           FINAL_URL="$USER_URL"
           if [[ -z "$FINAL_URL" && -n "$CHOICE" ]]; then
-            FINAL_URL="${ISO_URLS[$CHOICE]}"
-            if [[ -z "$FINAL_URL" ]]; then
+            if [[ "$BOOT_MODE" == "iso" ]]; then
+              FINAL_URL="${ISO_URLS[$CHOICE]}"
+            elif [[ "$BOOT_MODE" == "qcow2" ]]; then
               FINAL_URL="${QCOW2_URLS[$CHOICE]}"
             fi
+           
+            if [[ -z "$FINAL_URL" ]]; then
+               echo "::error::No valid URL found for choice '$CHOICE' with boot_mode '$BOOT_MODE'."
+               exit 1
+            fi
           fi
-
+       
           if [[ -z "$FINAL_URL" ]]; then
-            FINAL_URL="${ISO_URLS["bliss_gapps"]}"
+            FINAL_URL="${ISO_URLS["bliss"]}" 
+            echo "::notice::No system choice provided. Defaulting to Bliss ISO."
           fi
 
           echo "FINAL_SOURCE_URL=$FINAL_URL" >> $GITHUB_ENV
-
+          
       - name: Configure VM specs
         run: |
           DISK=60
@@ -440,8 +448,8 @@ jobs:
             sudo tailscale ip -4 || true
             echo
             echo ">>> RDP Connection: ${{ env.CONNECTION_IP }}"
-            echo ">>> VNC Connection: ${{ env.CONNECTION_IP }}"
-            echo ">>> NoMachine Connection: ${{ env.CONNECTION_IP }}"
+            echo ">>> VNC Connection: ${{ env.CONNECTION_IP }}:5900"
+            echo ">>> NoMachine Connection: ${{ env.CONNECTION_IP }}4000"
           else
             if [ "${{ github.event.inputs.connection_program }}" = "RDP" ]; then
               echo ">>> RDP (Ngrok): ${{ env.RDP_URL }}"

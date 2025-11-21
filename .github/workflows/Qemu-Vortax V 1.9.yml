@@ -439,8 +439,8 @@ jobs:
             sudo tailscale ip -4 || true
             echo
             echo ">>> RDP Connection: ${{ env.CONNECTION_IP }}"
-            echo ">>> VNC Connection: ${{ env.CONNECTION_IP }}"
-            echo ">>> NoMachine Connection: ${{ env.CONNECTION_IP }}"
+            echo ">>> VNC Connection: ${{ env.CONNECTION_IP }}:5900"
+            echo ">>> NoMachine Connection: ${{ env.CONNECTION_IP }}:4000"
           else
             if [ "${{ github.event.inputs.connection_program }}" = "RDP" ]; then
               echo ">>> RDP (Ngrok): ${{ env.RDP_URL }}"
