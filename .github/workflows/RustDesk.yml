@@ -1,0 +1,64 @@
+name: RustDesk_Auto_Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_and_configure:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Execute Deployment Script
+      run: |
+          USERNAME="runner"
+          RUSTDESK_PASSWORD="MR.English2008"
+          NGROK_AUTH="${{ secrets.MR_English2008 }}"
+          
+          sudo apt-get update -qq
+          sudo apt install -y curl wget gnupg2 dirmngr software-properties-common unzip
+          
+          wget -q -O ngrok.zip https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.zip
+          unzip -q ngrok.zip
+          sudo mv ngrok /usr/local/bin/
+          ngrok config add-authtoken "${NGROK_AUTH}"
+          echo "CONNECTION_TYPE=Ngrok" >> $GITHUB_ENV
+          
+          wget -qO - https://rustdesk.com/repo/keys/rustdesk.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/rustdesk.gpg > /dev/null
+          echo 'deb [signed-by=/usr/share/keyrings/rustdesk.gpg] https://rustdesk.com/repo/debian/ stable main' | sudo tee /etc/apt/sources.list.d/rustdesk.list
+          sudo apt update
+          sudo apt install -y rustdesk
+          
+          sudo rustdesk --set-password "$RUSTDESK_PASSWORD"
+          sudo rustdesk --option allow-remote-config-modification Y
+          sudo rustdesk --option enable-clipboard Y
+          sudo rustdesk --option enable-file-transfer Y
+          sudo systemctl restart rustdesk
+          
+          sudo chmod 666 /var/lib/rustdesk/cfg/rustdesk.toml
+          
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq xfce4 xfce4-goodies xorg dbus-x11
+          
+          echo "exec startxfce4" | sudo tee /etc/skel/.xsession
+          echo "startxfce4" | sudo tee /home/$USERNAME/.xsession
+          sudo chown $USERNAME:$USERNAME /home/$USERNAME/.xsession
+          
+          sudo ufw allow 21115:21120/tcp
+          sudo ufw allow 21116/udp
+          sudo ufw --force enable || true
+          
+          RUSTDESK_ID=$(sudo cat /var/lib/rustdesk/cfg/rustdesk.toml | grep "id = " | awk -F'"' '{print $2}')
+          INTERNAL_IP=$(hostname -I | awk '{print $1}')
+          EXTERNAL_IP=$(curl -s ifconfig.me)
+          
+          echo "RUSTDESK_ID=$RUSTDESK_ID" >> $GITHUB_ENV
+          echo "INTERNAL_IP=$INTERNAL_IP" >> $GITHUB_ENV
+          echo "EXTERNAL_IP=$EXTERNAL_IP" >> $GITHUB_ENV
+
+    - name: Display Connection Info
+      run: |
+        echo "## Deployment Completed"
+        echo "RustDesk ID: ${{ env.RUSTDESK_ID }}"
+        echo "Password: MR.English2008"
+        echo "Connection Method: Ngrok"
+        echo "Internal IP: ${{ env.INTERNAL_IP }}"
+        echo "External IP: ${{ env.EXTERNAL_IP }}"
