@@ -479,9 +479,13 @@ jobs:
           sudo pkill -9 qemu
           
           if [[ "$UPLOAD_QCOW2" == "yes" ]]; then
+          
+            DATE=$(date +%d-%m-%Y)
+            echo "Compressing QCOW2 file to 7z..."
+            sudo 7z a -t7z -mx=9 "/mnt/${VM}-${DATE}.7z" "/mnt/${VM}.qcow2"
       
             echo "Starting upload using MegaTools..."
-            TARGET_FILE="${VM}.qcow2"
+            TARGET_FILE="${VM}-${DATE}.7z"
             TARGET_PATH="/mnt/$TARGET_FILE"
             
             echo "Setting up MegaTools configuration file..."
@@ -497,12 +501,12 @@ jobs:
             ls /mnt
             sudo cp .megarc /mnt
             echo " uploading qcow2 file to mega"
-            sudo megaput /mnt/${VM}.qcow2 --path /Root
+            sudo megaput "/mnt/${VM}-${DATE}.7z" --path /Root
             echo "getting the download link"
-            DOWNLOAD_LINK=$(sudo megaexport /Root/${VM}.qcow2)
+            DOWNLOAD_LINK=$(sudo megaexport /Root/"${VM}-${DATE}.7z")
             echo "Download link: $DOWNLOAD_LINK"
           else
-            echo "Skipped uploading QCOW2."
+            echo "Skipped uploading Compressed QCOW2 file."
           fi
           
           
