@@ -117,6 +117,7 @@ jobs:
       - name: Install QEMU, OVMF, and components
         run: |
           sudo apt-get update -qq
+          sudo apt-get install -y socat
           sudo apt-get install -y -qq qemu-system-x86 ovmf novnc websockify wget curl unzip p7zip-full unrar-free tar python3-pip
           pip install internetarchive
           git clone https://github.com/stck-lzm/badown ~/badown
@@ -321,8 +322,8 @@ jobs:
                 -device virtio-blk-pci,drive=hd0 \
                 -drive if=pflash,format=raw,readonly=on,file="$CODE_PATH" \
                 -drive if=pflash,format=raw,file="$VARS_PATH" \
-                -vnc :0,password=on \
-                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
+                -vnc 0.0.0.0:0,password=on \
+                -set vnc.password=MR.English2008 \
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -339,8 +340,8 @@ jobs:
                 -drive if=pflash,format=raw,readonly=on,file="$CODE_PATH" \
                 -drive if=pflash,format=raw,file="$VARS_PATH" \
                 -boot c \
-                -vnc :0,password=on \
-                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
+                -vnc 0.0.0.0:0,password=on \
+                -set vnc.password=MR.English2008 \
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -358,8 +359,9 @@ jobs:
                 -boot d \
                 -cdrom "$ISO_PATH" \
                 -hda "$DISK_PATH" \
-                -vnc :0,password=on \
-                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
+                qemu-system-x86_64 \
+                -vnc 0.0.0.0:0,password=on \
+                -set vnc.password=MR.English2008 \
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -374,8 +376,8 @@ jobs:
                 -m ${RAM}G \
                 -hda "$DISK_PATH" \
                 -boot c \
-                -vnc :0,password=on \
-                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
+                -vnc 0.0.0.0:0,password=on \
+                -set vnc.password=MR.English2008 \
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -387,7 +389,7 @@ jobs:
           echo "VM started successfully."
           echo "Setting QEMU VNC password..."
             {
-              sleep 5
+              sleep 10
               echo "change vnc password ${{ github.event.inputs.vnc_password }}"
             } | socat - UNIX-CONNECT:/tmp/qemu-monitor-socket
 
