@@ -386,12 +386,10 @@ jobs:
             fi
           fi
           echo "VM started successfully."
-          echo "Setting QEMU VNC password..."
-            {
-              sleep 10
-              echo "change vnc password ${{ github.event.inputs.vnc_password }}"
-            } | nc -N -q 1 localhost 4444
-
+          while ! nc -z localhost 4444; do
+            sleep 1
+          done
+          echo "change vnc password ${{ github.event.inputs.vnc_password }}" | nc localhost 4444
           echo "VNC password applied successfully!"
 
       - name: Create desktop VNC launcher
