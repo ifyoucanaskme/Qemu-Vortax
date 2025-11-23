@@ -388,7 +388,7 @@ jobs:
           echo "VM started successfully."
           echo "Setting QEMU VNC password..."
             {
-              sleep 10
+              sleep 50
               echo "change vnc password ${{ github.event.inputs.vnc_password }}"
             } | socat - UNIX-CONNECT:/tmp/qemu-monitor-socket
 
