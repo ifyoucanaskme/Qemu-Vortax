@@ -323,7 +323,7 @@ jobs:
                 -drive if=pflash,format=raw,readonly=on,file="$CODE_PATH" \
                 -drive if=pflash,format=raw,file="$VARS_PATH" \
                 -vnc :0,password=on \
-                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
+                -monitor tcp:localhost:4444,server,nowait
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -341,7 +341,7 @@ jobs:
                 -drive if=pflash,format=raw,file="$VARS_PATH" \
                 -boot c \
                 -vnc :0,password=on \
-                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
+                -monitor tcp:localhost:4444,server,nowait
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -360,7 +360,7 @@ jobs:
                 -cdrom "$ISO_PATH" \
                 -hda "$DISK_PATH" \
                 -vnc :0,password=on \
-                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
+                -monitor tcp:localhost:4444,server,nowait
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -376,7 +376,7 @@ jobs:
                 -hda "$DISK_PATH" \
                 -boot c \
                 -vnc :0,password=on \
-                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
+                -monitor tcp:localhost:4444,server,nowait
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -390,7 +390,7 @@ jobs:
             {
               sleep 50
               echo "change vnc password ${{ github.event.inputs.vnc_password }}"
-            } | socat - UNIX-CONNECT:/tmp/qemu-monitor-socket
+            } | nc -N localhost 4444
 
           echo "VNC password applied successfully!"
 
