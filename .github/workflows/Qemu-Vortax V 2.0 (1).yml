@@ -129,7 +129,7 @@ jobs:
         run: |
           CHOICE="${{ github.event.inputs.system_choice }}"
           USER_URL="${{ github.event.inputs.source_url }}"
-          BOOT_MODE="${{ github.event.inputs.boot_mode }}" # جلب متغير وضع الإقلاع
+          BOOT_MODE="${{ github.event.inputs.boot_mode }}"
 
           declare -A ISO_URLS
           ISO_URLS["bazite"]="https://download.bazzite.gg/bazzite-stable-live.iso"
@@ -322,8 +322,8 @@ jobs:
                 -device virtio-blk-pci,drive=hd0 \
                 -drive if=pflash,format=raw,readonly=on,file="$CODE_PATH" \
                 -drive if=pflash,format=raw,file="$VARS_PATH" \
-                -vnc 0.0.0.0:0,password=on \
-                -set vnc.password=MR.English2008 \
+                -vnc :0,password=on \
+                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -340,8 +340,8 @@ jobs:
                 -drive if=pflash,format=raw,readonly=on,file="$CODE_PATH" \
                 -drive if=pflash,format=raw,file="$VARS_PATH" \
                 -boot c \
-                -vnc 0.0.0.0:0,password=on \
-                -set vnc.password=MR.English2008 \
+                -vnc :0,password=on \
+                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -359,9 +359,8 @@ jobs:
                 -boot d \
                 -cdrom "$ISO_PATH" \
                 -hda "$DISK_PATH" \
-                qemu-system-x86_64 \
-                -vnc 0.0.0.0:0,password=on \
-                -set vnc.password=MR.English2008 \
+                -vnc :0,password=on \
+                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
@@ -376,8 +375,8 @@ jobs:
                 -m ${RAM}G \
                 -hda "$DISK_PATH" \
                 -boot c \
-                -vnc 0.0.0.0:0,password=on \
-                -set vnc.password=MR.English2008 \
+                -vnc :0,password=on \
+                -monitor unix:/tmp/qemu-monitor-socket,server,nowait \
                 -display none \
                 -netdev user,id=net0 \
                 -device e1000,netdev=net0 \
